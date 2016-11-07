@@ -283,9 +283,9 @@ static NSHashTable *allAnimatedImagesWeak;
                         }else{
                             //for the case of APNG
                             NSDictionary *framePropertiesAPNG = [frameProperties objectForKey:(id)kCGImagePropertyPNGDictionary];
-                            delayTime = [framePropertiesAPNG objectForKey:(id)kCGImagePropertyAPNGUnclampedDelayTime];
+                            delayTime = [framePropertiesAPNG objectForKey:@"UnclampedDelayTime"];
                             if (!delayTime) {
-                                delayTime = [framePropertiesAPNG objectForKey:(id)kCGImagePropertyAPNGDelayTime];
+                                delayTime = [framePropertiesAPNG objectForKey:@"DelayTime"];
                             }
                         }
                         const NSTimeInterval kDelayTimeIntervalDefault = 0.1;
@@ -553,7 +553,7 @@ static NSHashTable *allAnimatedImagesWeak;
     if(UTTypeConformsTo(_imageSourceContainerType, kUTTypeGIF)){
         return [[[imageProperties objectForKey:(id)kCGImagePropertyGIFDictionary] objectForKey:(id)kCGImagePropertyGIFLoopCount] unsignedIntegerValue];
     }else if(UTTypeConformsTo(_imageSourceContainerType, kUTTypePNG)){
-         return [[[imageProperties objectForKey:(id)kCGImagePropertyPNGDictionary] objectForKey:(id)kCGImagePropertyAPNGLoopCount] unsignedIntegerValue];
+        return [[[imageProperties objectForKey:(id)kCGImagePropertyPNGDictionary] objectForKey:@"LoopCount"] unsignedIntegerValue];
     }
     else{
         FLLog(FLLogLevelError, @"Supplied data is of type %@ and doesn't seem to be GIF or APNG data", _imageSourceContainerType);
