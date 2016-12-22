@@ -534,7 +534,8 @@ static NSHashTable *allAnimatedImagesWeak;
         return TRUE;
     }else if(UTTypeConformsTo(imageSourceContainerType, kUTTypePNG)){
         //PNG and APNG have same UTType, so see if it has metadata for animations
-        NSDictionary *imageProperties = (__bridge NSDictionary *)CGImageSourceCopyPropertiesAtIndex(_imageSource, 0, NULL);
+        CFDictionaryRef cfImageProperties = CGImageSourceCopyPropertiesAtIndex(_imageSource, 0, NULL);
+        NSDictionary *imageProperties = (NSDictionary *)CFBridgingRelease(cfImageProperties);
         NSDictionary *metaPNGData =[imageProperties objectForKey:@"{PNG}"];
         if([metaPNGData objectForKey:@"DelayTime"] && [metaPNGData objectForKey:@"UnclampedDelayTime"]){
             return TRUE;
