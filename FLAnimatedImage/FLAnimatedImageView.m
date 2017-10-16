@@ -296,7 +296,13 @@ static NSUInteger gcd(NSUInteger a, NSUInteger b)
         // Note: The display link's `.frameInterval` value of 1 (default) means getting callbacks at the refresh rate of the display (~60Hz).
         // Setting it to 2 divides the frame rate by 2 and hence calls back at every other display refresh.
         const NSTimeInterval kDisplayRefreshRate = 60.0; // 60Hz
-        self.displayLink.frameInterval = MAX([self frameDelayGreatestCommonDivisor] * kDisplayRefreshRate, 1);
+        NSInteger frameInterval = MAX([self frameDelayGreatestCommonDivisor] * kDisplayRefreshRate, 1);
+        
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 10.0) {
+            self.displayLink.frameInterval = frameInterval;
+        } else {
+            self.displayLink.preferredFramesPerSecond = frameInterval;
+        }
 
         self.displayLink.paused = NO;
     } else {
@@ -372,6 +378,12 @@ static NSUInteger gcd(NSUInteger a, NSUInteger b)
     // If we don't have a frame delay (e.g. corrupt frame), don't update the view but skip the playhead to the next frame (in else-block).
     if (delayTimeNumber) {
         NSTimeInterval delayTime = [delayTimeNumber floatValue];
+        
+        NSInteger frameInterval = displayLink.frameInterval;
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 10.0) {
+            frameInterval = displayLink.preferredFramesPerSecond;
+        }
+        
         // If we have a nil image (e.g. waiting for frame), don't update the view nor playhead.
         UIImage *image = [self.animatedImage imageLazilyCachedAtIndex:self.currentFrameIndex];
         if (image) {
@@ -382,7 +394,7 @@ static NSUInteger gcd(NSUInteger a, NSUInteger b)
                 self.needsDisplayWhenImageBecomesAvailable = NO;
             }
             
-            self.accumulator += displayLink.duration * displayLink.frameInterval;
+            self.accumulator += displayLink.duration * frameInterval;
             
             // While-loop first inspired by & good Karma to: https://github.com/ondalabs/OLImageView/blob/master/OLImageView.m
             while (self.accumulator >= delayTime) {
@@ -409,7 +421,7 @@ static NSUInteger gcd(NSUInteger a, NSUInteger b)
             FLLog(FLLogLevelDebug, @"Waiting for frame %lu for animated image: %@", (unsigned long)self.currentFrameIndex, self.animatedImage);
 #if defined(DEBUG) && DEBUG
             if ([self.debug_delegate respondsToSelector:@selector(debug_animatedImageView:waitingForFrame:duration:)]) {
-                [self.debug_delegate debug_animatedImageView:self waitingForFrame:self.currentFrameIndex duration:(NSTimeInterval)displayLink.duration * displayLink.frameInterval];
+                [self.debug_delegate debug_animatedImageView:self waitingForFrame:self.currentFrameIndex duration:(NSTimeInterval)displayLink.duration * frameInterval];
             }
 #endif
         }
